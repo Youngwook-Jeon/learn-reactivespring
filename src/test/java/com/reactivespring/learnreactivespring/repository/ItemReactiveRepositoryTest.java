@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Arrays;
@@ -48,6 +49,60 @@ public class ItemReactiveRepositoryTest {
         StepVerifier.create(itemReactiveRepository.findById("ABC"))
                 .expectSubscription()
                 .expectNextMatches(item -> item.getDescription().equals("Bose HeadPhones"))
+                .verifyComplete();
+    }
+
+    @Test
+    public void findItemByDescription() {
+        StepVerifier.create(itemReactiveRepository.findByDescription("Apple MacBook").log("desc: "))
+                .expectSubscription()
+                .expectNextCount(1)
+                .verifyComplete();
+    }
+
+    @Test
+    public void saveItem() {
+        Item item = new Item(null, "Google Home Mini", 30.00);
+        Mono<Item> savedItem = itemReactiveRepository.save(item);
+        StepVerifier.create(savedItem)
+                .expectSubscription()
+                .expectNextMatches(item1 -> item1.getId() != null && item1.getDescription().equals("Google Home Mini"))
+                .verifyComplete();
+    }
+
+    @Test
+    public void updateItem() {
+        double newPrice = 520.00;
+        Flux<Item> updatedItem = itemReactiveRepository.findByDescription("LG TV")
+                .map(item -> {
+                    item.setPrice(newPrice);
+                    return item;
+                })
+                .flatMap(item -> {
+                    return itemReactiveRepository.save(item);
+                });
+
+        StepVerifier.create(updatedItem)
+                .expectSubscription()
+                .expectNextMatches(item -> item.getPrice() == 520.00)
+                .verifyComplete();
+    }
+
+    @Test
+    public void deleteItemById() {
+        Mono<Void> deletedItem = itemReactiveRepository.findById("ABC")
+                .map(Item::getId)
+                .flatMap(id -> {
+                    return itemReactiveRepository.deleteById(id);
+                });
+
+        StepVerifier.create(deletedItem.log())
+                .expectSubscription()
+                .verifyComplete();
+
+        StepVerifier.create(itemReactiveRepository.findAll())
+                .expectSubscription()
+                .expectNextCount(4)
                 .verifyComplete();
     }
 }
