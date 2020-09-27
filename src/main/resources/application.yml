@@ -1,13 +1,11 @@
-#spring:
-#  profiles:
-#    active: dev
-#---
-#spring:
-#  profiles: dev
-#  data.mongodb:
-#    host: localhost
-#    port: 27017
-#    database: local
+spring:
+  profiles:
+    active: dev
+---
+spring:
+  profiles: dev
+  data.mongodb:
+    uri: mongodb+srv://meyer:1234@cluster0-pocha.mongodb.net/test?retryWrites=true&w=majority
 #---
 #spring:
 #  profiles: nonprod
