@@ -76,4 +76,27 @@ public class ItemHandlerTest {
                 .jsonPath("$.description").isEqualTo("Iphone X")
                 .jsonPath("$.price").isEqualTo(999.99);
     }
+
+    @Test
+    public void updateItem() {
+        Item item = new Item("ABC", "Apple MacBookPro", 3500.00);
+        webTestClient.put().uri(ItemConstants.ITEM_FUNCTIONAL_END_POINT_V1.concat("/{id}"), item.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(item), Item.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.description").isEqualTo("Apple MacBookPro")
+                .jsonPath("$.price").isEqualTo(3500.00);
+    }
+
+    @Test
+    public void updateItem_notFound() {
+        Item item = new Item("ABC", "Apple MacBookPro", 3500.00);
+        webTestClient.put().uri(ItemConstants.ITEM_FUNCTIONAL_END_POINT_V1.concat("/{id}"), "DEF")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(item), Item.class)
+                .exchange()
+                .expectStatus().isNotFound();
+    }
 }
